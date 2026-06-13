@@ -5,6 +5,7 @@ bm25_index.pkl
 # Environment variables (never commit secrets)
 .env
 .env.*
+!.env.example
 
 # Python
 __pycache__/
