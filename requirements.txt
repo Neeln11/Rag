@@ -1,0 +1,64 @@
+# =============================================================================
+#  requirements.txt
+#  Pinned to exact versions verified on Python 3.14 — June 2026
+#  Install: pip install -r requirements.txt
+# =============================================================================
+
+# ── Core LangChain stack ──────────────────────────────────────────────────────
+langchain==1.3.8
+langchain-core==1.4.6
+langchain-community==0.4.2
+langchain-huggingface==1.2.2
+langchain-chroma==1.1.0
+langchain-text-splitters==1.1.2
+langchain-classic==1.0.8          # EnsembleRetriever (moved from langchain-community)
+
+# ── LangGraph ─────────────────────────────────────────────────────────────────
+langgraph==1.2.4
+langgraph-checkpoint==4.1.1       # MemorySaver + checkpoint protocol
+
+# ── LLM provider: Groq ───────────────────────────────────────────────────────
+langchain-groq==1.1.3
+groq==0.37.1
+
+# ── Observability: LangSmith ──────────────────────────────────────────────────
+langsmith==0.8.15
+
+# ── Vector store: ChromaDB ────────────────────────────────────────────────────
+chromadb==1.5.9
+
+# ── Sparse retrieval: BM25 ────────────────────────────────────────────────────
+rank-bm25==0.2.2
+
+# ── Embeddings: sentence-transformers ────────────────────────────────────────
+sentence-transformers==5.5.1
+
+# ── Web search fallback: Tavily ───────────────────────────────────────────────
+tavily-python==0.7.26
+
+# ── FastAPI & ASGI ────────────────────────────────────────────────────────────
+fastapi==0.135.3
+uvicorn==0.43.0
+python-multipart==0.0.24          # multipart/form-data for /ingest file upload
+
+# ── Database: SQLAlchemy ──────────────────────────────────────────────────────
+sqlalchemy==2.0.50
+
+# ── Data validation: Pydantic ─────────────────────────────────────────────────
+pydantic==2.12.5
+
+# ── Environment variable loading ──────────────────────────────────────────────
+python-dotenv==1.2.2
+
+# ── HTTP client (Streamlit → FastAPI, URL ingestion) ─────────────────────────
+httpx==0.28.1
+
+# ── Frontend: Streamlit ───────────────────────────────────────────────────────
+streamlit==1.58.0
+
+# ── Encoding detection ────────────────────────────────────────────────────────
+chardet==7.4.3
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==9.0.3
+pytest-asyncio==1.4.0

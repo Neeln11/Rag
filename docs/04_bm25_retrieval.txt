@@ -1,0 +1,106 @@
+BM25 Retrieval Algorithm
+========================
+
+BM25 (Best Match 25) is a probabilistic ranking function used in keyword-based information
+retrieval. It is the successor to TF-IDF and remains a strong baseline for sparse retrieval,
+especially for exact keyword matching in technical documentation.
+
+Why BM25 Still Matters
+----------------------
+
+Despite the dominance of dense vector retrieval, BM25 has distinct advantages:
+
+1. Exact keyword matching: BM25 will always find documents containing the exact search term.
+   Dense retrieval may miss documents with rare technical terms if they were underrepresented
+   in the embedding model's training data.
+
+2. Zero infrastructure: No GPU, no embedding model, no vector index required. Fast setup.
+
+3. Interpretability: The ranking score is explainable — higher term frequency in shorter
+   documents scores higher.
+
+4. Out-of-vocabulary robustness: New technical jargon, model names, version numbers, and
+   product codes are retrieved accurately even if unseen during embedding model training.
+
+BM25 Scoring Formula
+--------------------
+
+Score(D, Q) = sum over terms t in Q of:
+    IDF(t) * (tf(t,D) * (k1 + 1)) / (tf(t,D) + k1 * (1 - b + b * |D| / avgdl))
+
+Where:
+    tf(t, D)  = term frequency of term t in document D
+    IDF(t)    = inverse document frequency of term t
+    |D|       = length of document D (in words)
+    avgdl     = average document length across the corpus
+    k1        = term frequency saturation parameter (typically 1.2 to 2.0)
+    b         = length normalization parameter (typically 0.75)
+
+The k1 parameter controls how much repeated terms contribute. Higher k1 rewards documents
+where the query term appears many times. The b parameter normalizes for document length,
+preventing longer documents from having an unfair advantage.
+
+Hybrid Retrieval: BM25 + Dense Vectors
+---------------------------------------
+
+Combining BM25 (sparse) with dense vector retrieval (dense) consistently outperforms
+either method alone on information retrieval benchmarks. This is because:
+
+- Dense retrieval captures semantic similarity ("car" matches "automobile")
+- BM25 captures exact-match precision ("CUDA 12.3 release notes")
+
+The combination handles both cases. The EnsembleRetriever in LangChain implements this
+by:
+1. Running both retrievers independently
+2. Applying Reciprocal Rank Fusion (RRF) to merge ranked lists
+3. Weighting the merged list according to specified weights
+
+Reciprocal Rank Fusion
+----------------------
+
+RRF merges multiple ranked lists by scoring each document as:
+    RRF_score(d) = sum over rankers r of: weight_r / (k + rank_r(d))
+
+Where k is a smoothing constant (typically 60). This penalizes documents that rank low
+in any individual ranker, rewarding documents that consistently rank well across methods.
+
+BM25 in LangChain
+-----------------
+
+LangChain's BM25Retriever (from langchain_community) wraps the rank_bm25 library:
+
+    from langchain_community.retrievers import BM25Retriever
+
+    bm25 = BM25Retriever.from_documents(docs)
+    bm25.k = 5  # Return top 5 results
+
+The retriever tokenizes documents using a simple whitespace splitter by default. For
+technical docs, consider a custom tokenizer that preserves camelCase, underscores, and
+version numbers (e.g., "PyTorch2.0" should remain a single token).
+
+Serialization
+-------------
+
+BM25 indexes are fast to build but must be rebuilt from scratch if the program restarts
+without persistence. Pickle serialization is the standard approach:
+
+    import pickle
+
+    # Save
+    with open("bm25_index.pkl", "wb") as f:
+        pickle.dump(bm25_retriever, f)
+
+    # Load
+    with open("bm25_index.pkl", "rb") as f:
+        bm25_retriever = pickle.load(f)
+
+This is safe because BM25 contains only numeric arrays and strings — no executable code.
+Always validate the loaded index against a known query before deploying in production.
+
+Performance Characteristics
+----------------------------
+
+Index build time: O(n * avg_doc_len) — linear in corpus size
+Query time:       O(n) naive, O(k * avg_query_len) with inverted index
+Memory:           O(vocabulary_size + corpus_size) — much less than dense vectors
+Disk size:        Small — typically 10-100x smaller than equivalent vector index
